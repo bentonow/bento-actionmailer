@@ -4,13 +4,11 @@
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
+Install the gem and add to the application's Gemfile:
 
-    $ bundle add bento-actionmailer
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install bento-actionmailer
+```
+gem 'bento-actionmailer', github: 'bentonow/bento-actionmailer', branch: 'main'
+```
 
 
 ## Usage
