@@ -21,11 +21,14 @@ module BentoActionMailer
     end
 
     def deliver!(mail)
+      html_body = mail.body.parts.find { |p| p.content_type =~ /text\/html/ }
+      raise DeliveryError, "No HTML body given. Bento requires an html email body." unless html_body
+
       send_mail(
-        to: mail.to,
-        from: mail.from,
+        to: mail.to.first,
+        from: mail.from.first,
         subject: mail.subject,
-        html_body: mail.body.raw_source,
+        html_body: html_body.decoded,
         personalization: {}
       )
     end
@@ -53,9 +56,6 @@ module BentoActionMailer
       response = Net::HTTP.start(BENTO_ENDPOINT.hostname, BENTO_ENDPOINT.port, req_options) do |http|
         http.request(request)
       end
-
-      # TODO: remove when confirmed that email delivery works
-      puts response.body
     end
   end
 end
