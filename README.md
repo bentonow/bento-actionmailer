@@ -1,8 +1,6 @@
-# Bento::Actionmailer
+# Bento for ActionMailer
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/bento/actionmailer`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+🍱 Send your transactional emails in your Rails app via Bento. (BETA)
 
 ## Installation
 
@@ -14,9 +12,20 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
     $ gem install bento-actionmailer
 
+
 ## Usage
 
-TODO: Write usage instructions here
+1. Add `:bento_actionmailer` as your delivery method in `application.rb` or one of the enviroment files.
+2. Configure with your `site_uuid`, `publishable_key` and `secret_key`.
+
+```ruby
+config.action_mailer.delivery_method = :bento_actionmailer
+config.action_mailer.bento_actionmailer_settings = {
+    site_uuid: "...",
+    publishable_key: "...",
+    secret_key: "..."
+}
+```
 
 ## Development
 
