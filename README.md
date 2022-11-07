@@ -1,6 +1,29 @@
-# Bento for ActionMailer
+# Bento Action Mailer
+[![Build Status](https://travis-ci.org/bentonow/bento-ruby-sdk.svg?branch=master)](https://travis-ci.org/bentonow/bento-ruby-sdk)
 
-🍱 Send your transactional emails in your Rails app via Bento. (BETA)
+🍱 Beautifully simple transactional email for Ruby on Rails!
+
+An Action Mailer adapter to send email using Bento's HTTPS API. Compatible with Rails 6 and above. 
+
+👋 To get personalized support, please tweet @bento or email jesse@bentonow.com!
+
+🐶 Battle-tested at Datadoor.io and some of Bento's microservices. 
+
+❤️ Thank you @SebastianSzturo from [DataDoor](https://datadoor.io) for your contribution. Want to contribute? PRs welcome!
+
+--------
+
+**NOTE: The Bento Action Mailer gem is great for simple apps where simplifying your email stack makes sense. It leverages all the amazing deliverability and support you get with Bento's marketing email product. For more complex setups, spin up a thread on Discord to chat about how we can support it (or submit a PR!).**
+
+A few things that might be missing in the API to fully support ActionMailer:
+- [ ] Support for text emails, currently only supports HTML
+- [ ] BCC
+- [ ] Attachments
+- [ ] Custom email headers
+
+PRs and discussions welcome!
+
+--------
 
 ## Installation
 
@@ -9,7 +32,6 @@ Install the gem and add to the application's Gemfile:
 ```
 gem 'bento-actionmailer', github: 'bentonow/bento-actionmailer', branch: 'main'
 ```
-
 
 ## Usage
 
