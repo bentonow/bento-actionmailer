@@ -10,8 +10,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Sebastian Szturo"]
   spec.email = ["sebastian.szturo@gmail.com"]
 
-  spec.summary = "Write a short summary, because RubyGems requires one."
-  spec.description = "Write a longer description or delete this line."
+  spec.summary = "Send your emails with ActionMailer through Bento."
+  spec.description = "Bento is a powerful messaging automation platform created for online businesses."
   spec.homepage = "https://github.com/bentonow/bento-actionmailer"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
