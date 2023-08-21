@@ -5,6 +5,7 @@ require "net/http"
 require "uri"
 
 module BentoActionMailer
+  # BentoActionMailer is an ActionMailer provider
   class DeliveryMethod
     class DeliveryError < StandardError; end
 
@@ -21,19 +22,32 @@ module BentoActionMailer
     end
 
     def deliver!(mail)
-      html_body = mail.body.parts.find { |p| p.content_type =~ /text\/html/ }
-      raise DeliveryError, "No HTML body given. Bento requires an html email body." unless html_body
-
       send_mail(
         to: mail.to.first,
         from: mail.from.first,
         subject: mail.subject,
-        html_body: html_body.decoded,
+        html_body: html_body(mail),
         personalization: {}
       )
     end
 
     private
+
+    # Extracts the HTML part of an email and returning the decoded content if found.
+    # If not, it returns the raw source of the email.
+    #
+    # @param [Mail::Message] mail message to transform
+    #
+    # @return [String] the HTML content or raw source of the email
+    def html_body(mail)
+      html_body = mail.body.parts.find { |p| p.content_type =~ %r{text/html} }
+
+      # Handle html
+      return html_body.decoded if html_body
+
+      # Handle text
+      mail&.body&.raw_source
+    end
 
     def send_mail(to:, from:, subject:, html_body:, personalization: {})
       import_data = [
