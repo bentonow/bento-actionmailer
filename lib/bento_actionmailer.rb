@@ -5,8 +5,7 @@ require "net/http"
 require "uri"
 
 module BentoActionMailer
-  # BentoActionMailer is an ActionMailer provider for sending mail through
-  # Bento.
+  # BentoActionMailer is an ActionMailer provider
   class DeliveryMethod
     class DeliveryError < StandardError; end
 
