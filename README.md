@@ -1,7 +1,5 @@
-
-<p align="center"><img src="/art/bento-actionmailer-sdk.png" alt="Bento Actionmailer SDK"></p>
-
-[![Build Status](https://travis-ci.org/bentonow/bento-ruby-sdk.svg?branch=master)](https://travis-ci.org/bentonow/bento-ruby-sdk)
+# Bento Actionmailer
+<img align="right" src="https://app.bentonow.com/brand/logoanim.gif">
 
 > [!TIP]
 > Need help? Join our [Discord](https://discord.gg/ssXXFRmt5F) or email jesse@bentonow.com for personalized support.
