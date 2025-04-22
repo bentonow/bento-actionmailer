@@ -47,7 +47,15 @@ Table of contents
 Add the gem to your application's Gemfile:
 
 ```ruby
+# Required
 gem 'bento-actionmailer', github: 'bentonow/bento-actionmailer', branch: 'main'
+```
+
+This gem expects an html and plain text version to be present in your mailers. Some libraries do not do this out of the box (Devise is one of them). You can handle this by adding `premailer-rails` which will automagically do it for you.
+
+```ruby
+# Recommended
+gem 'premailer-rails'
 ```
 
 Then run:
