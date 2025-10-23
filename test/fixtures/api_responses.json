@@ -1,0 +1,23 @@
+{
+  "success_responses": {
+    "200": { "status": "success", "message": "Email sent" },
+    "202": { "status": "accepted", "message": "Email queued" },
+    "204": { "status": "accepted", "message": "No content" }
+  },
+  "client_errors": {
+    "400": { "error": "Bad request" },
+    "401": { "error": "Unauthorized" },
+    "403": { "error": "Forbidden" },
+    "422": { "error": "Validation failed" }
+  },
+  "server_errors": {
+    "500": { "error": "Internal server error" },
+    "502": { "error": "Bad gateway" },
+    "503": { "error": "Service unavailable" }
+  },
+  "malformed": {
+    "invalid_json": "{",
+    "empty": "",
+    "whitespace": "  \n\t  "
+  }
+}
