@@ -1,5 +1,61 @@
 AllCops:
   TargetRubyVersion: 2.6
+  NewCops: disable
+  SuggestExtensions: false
+
+Layout/LineLength:
+  Max: 140
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/SymbolProc:
+  Enabled: false
+
+Style/Alias:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
+
+Lint/RedundantSafeNavigation:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  Enabled: false
+
+Metrics/ClassLength:
+  Max: 160
+  Exclude:
+    - 'test/**/*'
+
+Metrics/MethodLength:
+  Max: 35
+  Exclude:
+    - 'test/**/*'
+
+Metrics/AbcSize:
+  Max: 50
+  Exclude:
+    - 'test/**/*'
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+  Exclude:
+    - 'test/**/*'
+
+Naming/FileName:
+  Exclude:
+    - 'lib/bento-actionmailer.rb'
 
 Style/StringLiterals:
   Enabled: true
@@ -9,5 +65,5 @@ Style/StringLiteralsInInterpolation:
   Enabled: true
   EnforcedStyle: double_quotes
 
-Layout/LineLength:
-  Max: 120
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false

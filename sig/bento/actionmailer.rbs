@@ -1,6 +1,28 @@
 module Bento
   module Actionmailer
     VERSION: String
-    # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+  end
+end
+
+module BentoActionMailer
+  VERSION: String
+
+  class DeliveryMethod
+    BENTO_ENDPOINT: URI::Generic
+    DEFAULTS: Hash[Symbol, untyped]
+    UNAUTHORIZED_AUTHOR_ERROR: String
+    UNKNOWN_RESPONSE_MESSAGE: String
+
+    attr_accessor settings: Hash[Symbol, untyped]
+
+    def initialize: (?Hash[Symbol, untyped]) -> void
+    def deliver!: (untyped mail) -> void
+
+    class DeliveryError < StandardError
+      attr_reader response_code: Integer?
+      attr_reader error_details: untyped
+
+      def initialize: (String message, ?response_code: Integer?, ?error_details: untyped) -> void
+    end
   end
 end
