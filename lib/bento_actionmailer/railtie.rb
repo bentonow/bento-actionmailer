@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 module BentoActionMailer
+  # Registers the Bento delivery method with Action Mailer when Rails loads.
   class Railtie < Rails::Railtie
     initializer "bento_action_mailer.add_delivery_method", before: "action_mailer.set_configs" do
       ActiveSupport.on_load(:action_mailer) do

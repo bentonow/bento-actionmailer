@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "bento_actionmailer/version"
 require "bento_actionmailer/railtie" if defined? Rails
 
@@ -6,6 +8,7 @@ require "net/http"
 require "uri"
 
 module BentoActionMailer
+  # Action Mailer delivery method that sends emails through Bento's batch email API.
   class DeliveryMethod
     class DeliveryError < StandardError; end
 
@@ -22,7 +25,7 @@ module BentoActionMailer
     end
 
     def deliver!(mail)
-      html_body = mail.body.parts.find { |p| p.content_type =~ /text\/html/ }
+      html_body = mail.body.parts.find { |p| p.content_type =~ %r{text/html} }
       raise DeliveryError, "No HTML body given. Bento requires an html email body." unless html_body
 
       send_mail(
@@ -37,37 +40,60 @@ module BentoActionMailer
     private
 
     def send_mail(to:, from:, subject:, html_body:, personalization: {})
-      import_data = [
-        {
-          to: to,
-          from: from,
-          subject: subject,
-          html_body: html_body,
-          transactional: settings[:transactional],
-          personalizations: personalization
-        }
-      ]
+      request = build_request(
+        to: to,
+        from: from,
+        subject: subject,
+        html_body: html_body,
+        personalization: personalization
+      )
+      handle_response(perform_request(request))
+    end
 
+    def build_request(to:, from:, subject:, html_body:, personalization:)
       request = Net::HTTP::Post.new(BENTO_ENDPOINT)
       request.basic_auth(settings[:publishable_key], settings[:secret_key])
-      request.body = JSON.dump({ site_uuid: settings[:site_uuid], emails: import_data })
+      request.body = JSON.dump(
+        site_uuid: settings[:site_uuid],
+        emails: [email_payload(to, from, subject, html_body, personalization)]
+      )
       request.content_type = "application/json"
+      request
+    end
+
+    def perform_request(request)
       req_options = { use_ssl: BENTO_ENDPOINT.scheme == "https" }
 
-      response = Net::HTTP.start(BENTO_ENDPOINT.hostname, BENTO_ENDPOINT.port, req_options) do |http|
+      Net::HTTP.start(BENTO_ENDPOINT.hostname, BENTO_ENDPOINT.port, req_options) do |http|
         http.request(request)
       end
+    end
 
-      handle_response(response)
+    def email_payload(to, from, subject, html_body, personalization)
+      {
+        to: to,
+        from: from,
+        subject: subject,
+        html_body: html_body,
+        transactional: settings[:transactional],
+        personalizations: personalization
+      }
     end
 
     def handle_response(response)
       return response if response.is_a?(Net::HTTPSuccess)
 
-      raise DeliveryError, api_error_message(response)
+      raise DeliveryError, ResponseErrorMessage.new(response).to_s
+    end
+  end
+
+  # Builds a safe, user-facing exception message from Bento API responses.
+  class ResponseErrorMessage
+    def initialize(response)
+      @response = response
     end
 
-    def api_error_message(response)
+    def to_s
       status = [response.code, response.message].compact.join(" ")
       message = "Bento API request failed"
       message += " (#{status})" unless status.empty?
@@ -77,6 +103,8 @@ module BentoActionMailer
 
       message
     end
+
+    private
 
     def parse_api_error_message(body)
       return if body.nil? || body.empty?
@@ -135,5 +163,7 @@ module BentoActionMailer
       joined_messages = messages.compact.reject(&:empty?).join(", ")
       joined_messages unless joined_messages.empty?
     end
+
+    attr_reader :response
   end
 end

@@ -3,14 +3,14 @@
 require "test_helper"
 
 class FakeHttp
-  attr_reader :request
+  attr_reader :last_request
 
   def initialize(response)
     @response = response
   end
 
   def request(request)
-    @request = request
+    @last_request = request
     @response
   end
 end
@@ -26,7 +26,7 @@ class BentoActionMailerTest < Minitest::Test
     with_stubbed_bento_response(response) do |fake_http|
       assert_same response, send_test_mail
 
-      body = JSON.parse(fake_http.request.body)
+      body = JSON.parse(fake_http.last_request.body)
       assert_equal "site_test", body["site_uuid"]
       assert_equal "sender@example.com", body["emails"].first["from"]
     end
@@ -57,15 +57,8 @@ class BentoActionMailerTest < Minitest::Test
   end
 
   def test_send_mail_raises_joined_json_errors_from_failed_response
-    response = http_response(
-      Net::HTTPUnprocessableEntity,
-      "422",
-      "Unprocessable Entity",
-      "{\"errors\":[{\"field\":\"from\",\"message\":\"is not an approved author\"}]}"
-    )
-
     error = assert_raises(BentoActionMailer::DeliveryMethod::DeliveryError) do
-      with_stubbed_bento_response(response) do
+      with_stubbed_bento_response(unapproved_author_response) do
         send_test_mail
       end
     end
@@ -122,6 +115,16 @@ class BentoActionMailerTest < Minitest::Test
   def http_response(response_class, code, message, body)
     response = response_class.new("1.1", code, message)
     response.instance_variable_set(:@body, body)
+    response.instance_variable_set(:@read, true)
     response
+  end
+
+  def unapproved_author_response
+    http_response(
+      Net::HTTPUnprocessableEntity,
+      "422",
+      "Unprocessable Entity",
+      "{\"errors\":[{\"field\":\"from\",\"message\":\"is not an approved author\"}]}"
+    )
   end
 end
