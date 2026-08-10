@@ -77,7 +77,11 @@ Use Action Mailer as you normally would in your Rails application. The gem will 
 ```ruby
 class WelcomeMailer < ApplicationMailer
   def welcome_email
-    mail(to: 'user@example.com', subject: 'Welcome to Our App!')
+    mail(
+      to: 'user@example.com',
+      subject: 'Welcome to Our App!',
+      reply_to: 'support@example.com' # optional; passed through to Bento as reply_to
+    )
   end
 end
 ```
@@ -87,7 +91,7 @@ end
 1. Currently, the gem only supports HTML emails. Text-only emails are not supported yet.
 2. BCC functionality is not available in the current version.
 3. Attachments are not supported in this version of the gem.
-4. Custom email headers are not supported at the moment.
+4. Custom email headers (other than `reply_to`) are not supported at the moment.
 5. For complex email setups, consider reaching out to the Bento team for support or contributing to the project.
 
 ## Contributing
