@@ -27,8 +27,42 @@ class BentoActionMailerTest < Minitest::Test
       assert_same response, send_test_mail
 
       body = JSON.parse(fake_http.last_request.body)
+      email = body["emails"].first
       assert_equal "site_test", body["site_uuid"]
-      assert_equal "sender@example.com", body["emails"].first["from"]
+      assert_equal "sender@example.com", email["from"]
+      refute email.key?("reply_to")
+    end
+  end
+
+  def test_send_mail_includes_reply_to_when_provided
+    response = http_response(Net::HTTPOK, "200", "OK", "{\"success\":true}")
+
+    with_stubbed_bento_response(response) do |fake_http|
+      send_test_mail(reply_to: "replies@example.com")
+
+      email = JSON.parse(fake_http.last_request.body)["emails"].first
+      assert_equal "replies@example.com", email["reply_to"]
+    end
+  end
+
+  def test_deliver_passes_reply_to_from_mail
+    response = http_response(Net::HTTPOK, "200", "OK", "{\"success\":true}")
+    mail = Mail.new do
+      to "recipient@example.com"
+      from "sender@example.com"
+      reply_to "replies@example.com"
+      subject "Welcome"
+      html_part do
+        content_type "text/html; charset=UTF-8"
+        body "<p>Hello</p>"
+      end
+    end
+
+    with_stubbed_bento_response(response) do |fake_http|
+      delivery_method.deliver!(mail)
+
+      email = JSON.parse(fake_http.last_request.body)["emails"].first
+      assert_equal "replies@example.com", email["reply_to"]
     end
   end
 
@@ -80,13 +114,14 @@ class BentoActionMailerTest < Minitest::Test
 
   private
 
-  def send_test_mail
+  def send_test_mail(reply_to: nil)
     delivery_method.send(
       :send_mail,
       to: "recipient@example.com",
       from: "sender@example.com",
       subject: "Welcome",
-      html_body: "<p>Hello</p>"
+      html_body: "<p>Hello</p>",
+      reply_to: reply_to
     )
   end
 

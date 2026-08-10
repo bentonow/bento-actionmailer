@@ -33,29 +33,31 @@ module BentoActionMailer
         from: mail.from.first,
         subject: mail.subject,
         html_body: html_body.decoded,
+        reply_to: mail.reply_to&.first,
         personalization: {}
       )
     end
 
     private
 
-    def send_mail(to:, from:, subject:, html_body:, personalization: {})
+    def send_mail(to:, from:, subject:, html_body:, reply_to: nil, personalization: {})
       request = build_request(
         to: to,
         from: from,
         subject: subject,
         html_body: html_body,
+        reply_to: reply_to,
         personalization: personalization
       )
       handle_response(perform_request(request))
     end
 
-    def build_request(to:, from:, subject:, html_body:, personalization:)
+    def build_request(to:, from:, subject:, html_body:, reply_to:, personalization:)
       request = Net::HTTP::Post.new(BENTO_ENDPOINT)
       request.basic_auth(settings[:publishable_key], settings[:secret_key])
       request.body = JSON.dump(
         site_uuid: settings[:site_uuid],
-        emails: [email_payload(to, from, subject, html_body, personalization)]
+        emails: [email_payload(to, from, subject, html_body, personalization, reply_to: reply_to)]
       )
       request.content_type = "application/json"
       request
@@ -69,8 +71,8 @@ module BentoActionMailer
       end
     end
 
-    def email_payload(to, from, subject, html_body, personalization)
-      {
+    def email_payload(to, from, subject, html_body, personalization, reply_to: nil)
+      payload = {
         to: to,
         from: from,
         subject: subject,
@@ -78,6 +80,8 @@ module BentoActionMailer
         transactional: settings[:transactional],
         personalizations: personalization
       }
+      payload[:reply_to] = reply_to if reply_to
+      payload
     end
 
     def handle_response(response)
