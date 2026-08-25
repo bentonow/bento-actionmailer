@@ -23,6 +23,7 @@ Table of contents
     * [Installation](#installation)
     * [Configuration](#configuration)
 * [Usage](#usage)
+    * [Send many emails](#send-many-emails)
 * [Things to Know](#things-to-know)
 * [Contributing](#contributing)
 * [License](#license)
@@ -84,6 +85,29 @@ class WelcomeMailer < ApplicationMailer
     )
   end
 end
+```
+
+### Send many emails
+
+Use `deliver_now` or `deliver_later` for one-off mail.
+
+A loop of those methods sends one HTTP request per mail.
+
+If you already have a list of mails, call `BentoActionMailer.deliver_batch!`.
+
+The gem slices the list at 60 emails per request.
+
+Bento still sends at 60 emails per minute unless support raises the limit.
+
+HTML is required. Keep `premailer-rails` in your Gemfile.
+
+Attachments stay unsupported.
+
+```ruby
+PasswordMailer.reset(user).deliver_later
+
+mails = Order.paid_today.map { |order| ReceiptMailer.receipt(order) }
+BentoActionMailer.deliver_batch!(mails)
 ```
 
 ## Things to Know

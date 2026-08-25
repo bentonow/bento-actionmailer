@@ -8,11 +8,27 @@ require "net/http"
 require "uri"
 
 module BentoActionMailer
+  def self.deliver_batch!(mails, settings = nil)
+    raise ArgumentError, "deliver_batch! expects an array of mails" unless mails.is_a?(Array)
+
+    resolved_settings =
+      if !settings.nil?
+        settings
+      elsif defined?(ActionMailer::Base) && ActionMailer::Base.respond_to?(:bento_actionmailer_settings)
+        ActionMailer::Base.bento_actionmailer_settings
+      else
+        {}
+      end
+
+    DeliveryMethod.new(resolved_settings).deliver_batch!(mails)
+  end
+
   # Action Mailer delivery method that sends emails through Bento's batch email API.
   class DeliveryMethod
     class DeliveryError < StandardError; end
 
     BENTO_ENDPOINT = URI.parse("https://app.bentonow.com/api/v1/batch/emails")
+    BATCH_LIMIT = 60
 
     DEFAULTS = {
       transactional: true
@@ -25,42 +41,33 @@ module BentoActionMailer
     end
 
     def deliver!(mail)
-      html_body = mail.body.parts.find { |p| p.content_type =~ %r{text/html} }
-      raise DeliveryError, "No HTML body given. Bento requires an html email body." unless html_body
+      post_emails([email_payload_from_mail(mail)])
+    end
 
-      send_mail(
-        to: mail.to.first,
-        from: mail.from.first,
-        subject: mail.subject,
-        html_body: html_body.decoded,
-        reply_to: mail.reply_to&.first,
-        personalization: {}
-      )
+    def deliver_batch!(mails)
+      raise ArgumentError, "deliver_batch! expects an array of mails" unless mails.is_a?(Array)
+      return if mails.empty?
+
+      mails.each_slice(BATCH_LIMIT) do |slice|
+        post_emails(slice.map { |item| email_payload_from_mail(message_from(item)) })
+      end
     end
 
     private
 
     def send_mail(to:, from:, subject:, html_body:, reply_to: nil, personalization: {})
-      request = build_request(
-        to: to,
-        from: from,
-        subject: subject,
-        html_body: html_body,
-        reply_to: reply_to,
-        personalization: personalization
-      )
-      handle_response(perform_request(request))
+      post_emails([email_payload(to, from, subject, html_body, personalization, reply_to: reply_to)])
     end
 
-    def build_request(to:, from:, subject:, html_body:, reply_to:, personalization:)
+    def post_emails(payloads)
       request = Net::HTTP::Post.new(BENTO_ENDPOINT)
       request.basic_auth(settings[:publishable_key], settings[:secret_key])
       request.body = JSON.dump(
         site_uuid: settings[:site_uuid],
-        emails: [email_payload(to, from, subject, html_body, personalization, reply_to: reply_to)]
+        emails: payloads
       )
       request.content_type = "application/json"
-      request
+      handle_response(perform_request(request))
     end
 
     def perform_request(request)
@@ -69,6 +76,36 @@ module BentoActionMailer
       Net::HTTP.start(BENTO_ENDPOINT.hostname, BENTO_ENDPOINT.port, req_options) do |http|
         http.request(request)
       end
+    end
+
+    def message_from(item)
+      if item.respond_to?(:message) && item.respond_to?(:mailer_class)
+        item.message
+      else
+        item
+      end
+    end
+
+    def email_payload_from_mail(mail)
+      email_payload(
+        mail.to.first,
+        mail.from.first,
+        mail.subject,
+        html_body_from(mail),
+        {},
+        reply_to: mail.reply_to&.first
+      )
+    end
+
+    def html_body_from(mail)
+      html_part = mail.html_part
+      if html_part.nil? && mail.body.respond_to?(:parts)
+        html_part = mail.body.parts.find { |part| part.content_type =~ %r{text/html} }
+      end
+      return html_part.decoded if html_part
+      return mail.body.decoded if mail.content_type&.include?("text/html")
+
+      raise DeliveryError, "No HTML body given. Bento requires an html email body."
     end
 
     def email_payload(to, from, subject, html_body, personalization, reply_to: nil)
